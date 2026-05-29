@@ -1,0 +1,19 @@
+[project]
+name = "res_plan_server"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Tan Chian Fern", email = "tan_chian_fern@a-star.edu.sg" }
+]
+requires-python = ">=3.10"
+dependencies = [
+    "res_mapf_planning",
+    "res_plan_execution",
+]
+
+[build-system]
+requires = ["uv_build>=0.9.13,<0.10.0"]
+build-backend = "uv_build"
+
+[project.scripts]

@@ -1,0 +1,69 @@
+[project]
+name = "res_mapf"
+version = "0.1.0"
+description = "Add your description here"
+authors = [
+    { name = "Tan Chian Fern", email = "tan_chian_fern@a-star.edu.sg" }
+]
+requires-python = ">=3.10"
+dependencies = [
+    "res_mapf_planning",
+    "res_plan_execution",
+    "res_plan_server",
+    "res_pybullet",
+]
+
+[dependency-groups]
+dev = [
+    "lark>=1.3.1",
+    "mypy>=1.19.0",
+    "pre-commit>=4.3.0",
+    "pytest>=9.0.1",
+    "pytest-cov>=7.0.0",
+    "pytest-timeout>=2.3.1",
+    "ruff>=0.15.14",
+    "types-requests>=2.33.0.20260518",
+]
+
+
+[tool.uv.sources]
+res_mapf_planning = { workspace = true }
+res_plan_execution = { workspace = true }
+res_plan_server = { workspace = true }
+res_pybullet = { workspace = true }
+
+[tool.mypy]
+python_version = "3.10"
+namespace_packages = true
+incremental = false
+warn_redundant_casts = true
+warn_return_any = true
+warn_unused_configs = true
+warn_unused_ignores = false
+allow_redefinition = true
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = false
+strict_optional = true
+strict_equality = true
+explicit_package_bases = true
+follow_imports = "skip"
+
+# shared_memory_dict ships no type stubs or py.typed marker.
+[[tool.mypy.overrides]]
+module = ["shared_memory_dict.*"]
+ignore_missing_imports = true
+
+[tool.uv.workspace]
+members = [
+    "packages/*"
+]
+
+[tool.pytest.ini_options]
+testpaths = ["packages"]
+
+[build-system]
+requires = ["uv_build>=0.9.13,<0.10.0"]
+build-backend = "uv_build"
