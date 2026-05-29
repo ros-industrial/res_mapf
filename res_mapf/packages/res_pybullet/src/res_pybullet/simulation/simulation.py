@@ -28,7 +28,6 @@ Runs the PyBullet simulation.
 Robots are initialised and then continuously receive commands over the AgentCommand interface,
 responding on completion of each command.
 
-Run this together with the ADG program which executes the ADG over the AgentCommand interface.
 Provide a correct building.yaml to use named waypoints.
 
 This simulation.py and related urdf files were adapted initially from:
@@ -320,7 +319,7 @@ def main() -> None:
 
                 state = p.getBasePositionAndOrientation(current_agent.id)
                 position = state[0][:2]
-                quat = quaternion(state[1][3], state[1][0], state[1][1], state[1][2])
+                quat = quaternion.quaternion(state[1][3], state[1][0], state[1][1], state[1][2])
                 direction = quaternion.rotate_vectors(quat, (1.0, 0.0, 0.0))[:2]
                 targ, targ_id, subsequent_targ, is_goal = (
                     current_controller.get_target()
