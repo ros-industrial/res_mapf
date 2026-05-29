@@ -1,0 +1,47 @@
+default_install_hook_types: [ "pre-commit", "commit-msg" ]
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff version.
+    rev: v0.14.2
+    hooks:
+      # Run the formatter.
+      - id: ruff-format
+        stages: [ pre-commit ]
+      # Run the linter.
+      - id: ruff-check
+        args: [ --fix ]
+        stages: [ pre-commit ]
+
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    # uv version.
+    rev: 0.9.5
+    hooks:
+      - id: uv-lock
+        stages: [ pre-commit ]
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.20.2
+    hooks:
+      - id: mypy
+        stages: [ pre-commit ]
+        args: [ --ignore-missing-imports ]
+
+  - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
+    rev: v9.23.0
+    hooks:
+      - id: commitlint
+        stages: [ commit-msg ]
+        additional_dependencies: [ '@commitlint/config-conventional' ]
+
+  - repo: https://github.com/Lucas-C/pre-commit-hooks
+    rev: v1.5.5
+    hooks:
+      - id: insert-license
+        name: "License inserter"
+        files: .*py$
+        args:
+          - --license-filepath=LICENSE
+          - --comment-style=#
+          - --use-current-year
+        exclude: '(\.npy$|packages/res_mapf_planning/src/res_mapf_planning/cbs|packages/res_pybullet/src/res_pybullet/simulation)' # Do not add license to .npy files (the standard binary file format in NumPy)
+        stages: [ pre-commit ]

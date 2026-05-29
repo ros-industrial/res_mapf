@@ -1,0 +1,9 @@
+repositories:
+  res_mapf:
+    type: git
+    url: https://github.com/ros-industrial/res_mapf.git
+    version: main
+  next_gen_prototype:
+    type: git
+    url: https://github.com/open-rmf/next_gen_prototype.git
+    version: main
