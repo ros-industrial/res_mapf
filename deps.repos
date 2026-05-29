@@ -1,7 +1,7 @@
 repositories:
-  mapf_execution:
+  res_mapf:
     type: git
-    url: git@github.com:ros-industrial/res_mapf.git
+    url: https://github.com/ros-industrial/res_mapf.git
     version: main
   next_gen_prototype:
     type: git

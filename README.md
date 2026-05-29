@@ -13,7 +13,7 @@ See [References](#references).
 
 2. Install [vcs](https://github.com/dirk-thomas/vcstool)
 
-3. Download the [deps.repos](https://gitlab.com/ROSI-AP/rmf2/mapf_execution/-/blob/feat/cf/rework/deps.repos) file 
+3. Download the [deps.repos](https://github.com/ros-industrial/res_mapf/blob/main/deps.repos) file 
 
 4. Build
 
@@ -26,7 +26,7 @@ colcon build
 
 
 WORKSPACE_DIR="$HOME/mapf_ws"
-REPOS_FILE="<path to .repos file>" 
+REPOS_FILE="<path to deps.repos file>" 
 mkdir -p $WORKSPACE_DIR/src
 cd $WORKSPACE_DIR
 vcs import --input $REPOS_FILE src
@@ -46,7 +46,7 @@ colcon build
 ```
 cd $WORKSPACE_DIR
 source ~/colcon_extra_ws/install/setup.sh; colcon venv sync;
-cd $WORKSPACE_DIR/src/mapf_execution/packages/res_pybullet
+cd $WORKSPACE_DIR/src/res_mapf/res_mapf/packages/res_pybullet
 uv run sim --coords "0,0 2,0"
 ```
 
@@ -54,7 +54,7 @@ uv run sim --coords "0,0 2,0"
 ```
 cd $WORKSPACE_DIR
 source install/setup.sh; source install/activate.sh;
-python3 src/res_ros2/res_ros2/res_ros2/test/integration.py
+python3 src/res_mapf/res_ros2/res_ros2/test/integration.py
 ```
 
 ### Demonstration with ROS 2 nodes
@@ -109,8 +109,6 @@ robot_id: 'agent_1'
 goal: '0,3'"
 ```
 
-
-
 ## Concept
 
 1. A classical MAPF problem is solved with an MAPF solver. The solution is a list of positions that agents should move to at each timestep.
@@ -134,5 +132,4 @@ The replanning process and committed vertices concept were based on the paper:
 `W. Hönig, S. Kiesel, A. Tinka, J. W. Durham and N. Ayanian, "Persistent and Robust Execution of MAPF Schedules in Warehouses," in IEEE Robotics and Automation Letters, vol. 4, no. 2, pp. 1125-1131, April 2019, doi: 10.1109/LRA.2019.2894217.`
 
 
-The [cbs](centralized/cbs) directory is from [multi_agent_path_planning](https://github.com/atb033/multi_agent_path_planning).
-
+The [cbs](res_mapf/packages/res_mapf_planning/src/res_mapf_planning/cbs/) directory is from [multi_agent_path_planning](https://github.com/atb033/multi_agent_path_planning).
