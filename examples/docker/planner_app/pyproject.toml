@@ -1,0 +1,18 @@
+[project]
+name = "planner_app"
+version = "0.1.0"
+description = "Example MAPF planner: consume AMQP TaskRequest, run CBS, log plan"
+requires-python = "==3.12.*"
+dependencies = [
+    "pika>=1.3.2",
+    "rich>=13.9.0",
+    "res_mapf_planning @ https://github.com/GameTL/res_mapf_gametl/releases/download/v0.1.0/res_mapf_planning-0.1.0-py3-none-any.whl ; sys_platform == 'linux' and platform_machine == 'x86_64'",
+    "res_plan_server @ https://github.com/GameTL/res_mapf_gametl/releases/download/v0.1.0/res_plan_server-0.1.0-py3-none-any.whl ; sys_platform == 'linux' and platform_machine == 'x86_64'",
+    "res_plan_execution @ https://github.com/GameTL/res_mapf_gametl/releases/download/v0.1.0/res_plan_execution-0.1.0-py3-none-any.whl ; sys_platform == 'linux' and platform_machine == 'x86_64'",
+]
+
+[tool.uv]
+package = false
+environments = [
+    "sys_platform == 'linux' and platform_machine == 'x86_64'",
+]

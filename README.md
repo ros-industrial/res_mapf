@@ -17,7 +17,9 @@ fly as robots receive new destinations.
 - [How It Works](#how-it-works)
 - [Packages](#packages)
 - [Getting Started](#getting-started)
+- [Install from GitHub Release](#install-from-github-release)
 - [Usage](#usage)
+  - [Docker example (AMQP + CBS)](#docker-example-amqp--cbs)
   - [Local demonstration](#local-demonstration)
   - [Demonstration with ROS 2 nodes](#demonstration-with-ros-2-nodes)
 - [ROS 2 Interface](#ros-2-interface)
@@ -25,6 +27,7 @@ fly as robots receive new destinations.
   - [`plan_executor_node`](#plan_executor_node)
   - [Messages](#messages)
 - [Integration](#integration)
+- [Releasing](#releasing)
 - [References](#references)
 
 ---
@@ -114,7 +117,48 @@ colcon build
 
 ---
 
+## Install from GitHub Release
+
+Python wheels for `res_mapf`, `res_mapf_planning`, `res_plan_execution`,
+`res_plan_server`, and `res_pybullet` are attached to [GitHub Releases](https://github.com/GameTL/res_mapf_gametl/releases)
+(not published to PyPI). Install all five wheels from the same release together:
+
+```bash
+gh release download v0.1.0 -R GameTL/res_mapf_gametl -p '*.whl' -D dist
+python -m pip install \
+  dist/res_mapf_planning-*.whl \
+  dist/res_plan_execution-*.whl \
+  dist/res_plan_server-*.whl \
+  dist/res_pybullet-*.whl \
+  dist/res_mapf-*.whl
+```
+
+ROS packages (`res_ros2`, `res_ros2_msgs`) are not part of the wheel release; build
+those from source with colcon as in [Getting Started](#getting-started).
+
+---
+
 ## Usage
+
+### Minimal example showing requests via AMQP
+
+Run a minimal planner that consumes AMQP `TaskRequest` messages, solves with CBS, and
+logs the plan to stdout (no VDA5050 / no publish back to the broker):
+
+```bash
+cd examples/docker
+docker compose up --build
+```
+
+In another terminal:
+
+```bash
+python examples/docker/publish_task.py
+```
+
+See [`examples/docker/README.md`](examples/docker/README.md) for message shape and options.
+
+### ROS 2 / local demos
 
 Each step below runs in its own terminal, started from the workspace root. Steps that use
 the built workspace and the ROS 2 nodes first need the **project environment**, which sources
@@ -276,6 +320,38 @@ Custom messages defined in [`res_ros2_msgs`](res_ros2_msgs/msg):
      is provided, which communicates commands and completion status by writing to a
      [SharedMemoryDict](https://github.com/luizalabs/shared-memory-dict).
 2. Implement the `MAPFSolverABC` interface using a classical MAPF solver.
+
+---
+
+## Releasing
+
+Maintainers cut a Python package release as a GitHub Release (wheels + sdists).
+There is no PyPI publish. Versions are lockstep across all five packages.
+
+1. Ensure `main` is green (`Wheels` workflow).
+2. Bump `version` in all five `pyproject.toml` files under `res_mapf/` (same `X.Y.Z`).
+3. Update matching `==X.Y.Z` pins on inter-package dependencies in those same files.
+4. Add a `## X.Y.Z` section to [`CHANGELOG.md`](CHANGELOG.md).
+5. Merge the version-bump PR to `main`.
+6. Create and push an annotated tag matching the version:
+
+```bash
+git checkout main && git pull
+git tag -a vX.Y.Z -m "res_mapf X.Y.Z"
+git push origin vX.Y.Z
+```
+
+7. Wait for the `Wheels` workflow on the tag: **Build** → **Smoke** → **GitHub Release**.
+8. Confirm the [GitHub Release](https://github.com/GameTL/res_mapf_gametl/releases) has
+   5 `.whl` + 5 `.tar.gz` artifacts.
+9. Optional local smoke: download with `gh release download` and run the same pip install /
+   import check as in [Install from GitHub Release](#install-from-github-release).
+
+Notes:
+
+- Tag format must be `vX.Y.Z` (the release job only runs on `refs/tags/v*`).
+- Packages released: the five Python wheels only — not `res_ros2` / `res_ros2_msgs`.
+- Distribution is GitHub Release assets only (no PyPI).
 
 ---
 

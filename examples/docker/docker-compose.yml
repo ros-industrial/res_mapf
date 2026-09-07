@@ -1,0 +1,36 @@
+name: res-mapf-amqp
+
+services:
+  amqp-broker:
+    image: rabbitmq:3-management
+    ports:
+      - "${AMQP_PORT:-5672}:5672"
+      - "${AMQP_MGMT_PORT:-15672}:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    networks:
+      - mapf-net
+
+  planner:
+    build:
+      context: ../..
+      dockerfile: examples/docker/mapf-planner.Dockerfile
+    image: res-mapf/planner:local
+    platform: linux/amd64
+    environment:
+      AMQP_HOST: amqp-broker
+      AMQP_PORT: "5672"
+      LOG_LEVEL: "${LOG_LEVEL:-INFO}"
+    depends_on:
+      amqp-broker:
+        condition: service_healthy
+    networks:
+      - mapf-net
+
+networks:
+  mapf-net:
+    driver: bridge

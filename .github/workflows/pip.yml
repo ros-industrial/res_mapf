@@ -1,0 +1,58 @@
+name: Pip
+
+# Source install via pip (path installs of the uv workspace members).
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+      - "ci-*"
+    tags:
+      - "*"
+
+jobs:
+  build:
+    name: Build with Pip
+    runs-on: ${{ matrix.platform }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ubuntu-24.04, macos-26]
+        python-version: ["3.12"]
+
+    defaults:
+      run:
+        working-directory: res_mapf
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      - name: Build and install
+        # Path-install all members (+ meta) in one invocation so pip can
+        # satisfy inter-package deps without PyPI / uv workspace sources.
+        env:
+          CFLAGS: ${{ runner.os == 'macOS' && '-fno-define-target-os-macros' || '' }}
+        run: |
+          python -m pip install --verbose \
+            ./packages/res_map \
+            ./packages/res_mapf_planning \
+            ./packages/res_plan_execution \
+            ./packages/res_plan_server \
+            ./packages/res_pybullet \
+            .
+          python -m pip install pytest pytest-cov pytest-timeout
+
+      - name: Import smoke
+        run: |
+          python -c "import res_map, res_mapf_planning, res_plan_execution, res_plan_server, res_pybullet, res_mapf"
+
+      - name: Test
+        run: pytest
