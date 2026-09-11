@@ -254,7 +254,13 @@ def main() -> None:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("lif_file", type=Path, help="Input .lif.json file.")
+    parser.add_argument(
+        "lif_file",
+        type=Path,
+        nargs="?",
+        default=Path(__file__).parent / "basic_grid.lif.json",
+        help="Input .lif.json file. Defaults to the bundled basic_grid map.",
+    )
     args = parser.parse_args()
 
     logging.basicConfig(

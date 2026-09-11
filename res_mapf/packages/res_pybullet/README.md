@@ -1,3 +1,3 @@
-```bash
-uv run res_pybullet_sim
-```
+# res_pybullet
+
+PyBullet simulation of mobile robots

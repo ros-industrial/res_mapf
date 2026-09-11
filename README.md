@@ -137,8 +137,7 @@ res_pybullet_sim --named P_0_0 P_2_0 --map src/res_mapf/res_mapf/examples/basic_
 **2. Run the example script.** In the *project environment*, run the example:
 
 ```bash
-cd src/res_mapf/res_mapf/examples/basic_grid
-python3 example.py basic_grid.lif.json
+python3 src/res_mapf/res_mapf/examples/basic_grid/example.py
 ```
 
 ### Demonstration with ROS 2 nodes
