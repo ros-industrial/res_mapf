@@ -1,0 +1,132 @@
+name: Wheels
+
+# Build sdist + wheel for all uv workspace packages (pure Python).
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+      - "ci-*"
+    tags:
+      - "*"
+
+env:
+  FORCE_COLOR: 3
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build wheels
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: res_mapf
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Build sdist and wheels
+        run: uv build --all-packages
+
+      - name: Check metadata
+        run: uvx twine check dist/*
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: res-mapf-dist
+          path: |
+            res_mapf/dist/*.whl
+            res_mapf/dist/*.tar.gz
+
+  smoke:
+    name: Install wheels smoke
+    needs: build
+    runs-on: ${{ matrix.platform }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ubuntu-24.04, macos-26]
+        python-version: ["3.12"]
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - uses: actions/download-artifact@v7
+        with:
+          name: res-mapf-dist
+          path: dist
+
+      - name: Install from wheels
+        env:
+          CFLAGS: ${{ runner.os == 'macOS' && '-fno-define-target-os-macros' || '' }}
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install \
+            dist/res_mapf_planning-*.whl \
+            dist/res_plan_execution-*.whl \
+            dist/res_plan_server-*.whl \
+            dist/res_pybullet-*.whl \
+            dist/res_mapf-*.whl
+
+      - name: Import smoke
+        run: |
+          python -c "import res_mapf_planning, res_plan_execution, res_plan_server, res_pybullet, res_mapf"
+
+  release:
+    name: GitHub Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build, smoke]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/download-artifact@v7
+        with:
+          name: res-mapf-dist
+          path: dist
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          shopt -s nullglob
+          assets=(dist/*.whl dist/*.tar.gz)
+          if (( ${#assets[@]} == 0 )); then
+            echo "No wheel or sdist artifacts found in dist/" >&2
+            exit 1
+          fi
+          notes_file="$(mktemp)"
+          if [[ -f CHANGELOG.md ]]; then
+            # Extract the section matching the tag version (v0.1.0 -> 0.1.0).
+            version="${GITHUB_REF_NAME#v}"
+            awk -v ver="$version" '
+              $0 ~ "^##[[:space:]]+" ver "([[:space:]]|$)" {found=1; print; next}
+              found && /^##[[:space:]]+/ {exit}
+              found {print}
+            ' CHANGELOG.md > "$notes_file"
+          fi
+          if [[ ! -s "$notes_file" ]]; then
+            gh release create "$GITHUB_REF_NAME" "${assets[@]}" \
+              --title "$GITHUB_REF_NAME" \
+              --generate-notes
+          else
+            gh release create "$GITHUB_REF_NAME" "${assets[@]}" \
+              --title "$GITHUB_REF_NAME" \
+              --notes-file "$notes_file"
+          fi
