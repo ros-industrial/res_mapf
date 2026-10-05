@@ -22,6 +22,7 @@ from typing import Callable, List
 
 from res_map.map_data import MapData
 from res_mapf_planning.mapf_solve.mapf_solver_base import Location
+from res_plan_server.transport.transport_messages import PlanErrorCode
 
 
 @dataclass
@@ -30,13 +31,25 @@ class WaypointWithCallback:
 
     location: Location  # TODO: perhaps a common package
     on_reached: Callable[[], None]
+    task_id: str = ""
 
 
 class BaseRobotController(ABC):
-    """Subclasses must implement enqueue() and shutdown()."""
-
     def __init__(self, map_data: MapData) -> None:
         self.map_data = map_data
+        self._on_robot_failed: Callable[[str, PlanErrorCode, str], None] = (
+            lambda robot_id, error_code, details: None
+        )
+
+    def set_failure_callback(
+        self, callback: Callable[[str, PlanErrorCode, str], None]
+    ) -> None:
+        """Called by Plan Executor.
+
+        callback(robot_id, error_code, details) must be called when the controller
+        determines that a request cannot be completed.
+        """
+        self._on_robot_failed = callback
 
     @abstractmethod
     def enqueue(

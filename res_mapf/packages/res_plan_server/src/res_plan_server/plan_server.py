@@ -36,6 +36,7 @@ from res_plan_server.transport.server_base_transport import ServerBaseTransport
 from res_plan_server.transport.transport_messages import (
     CommittedLocationsResponseMsg,
     ParticipantDiscoveryMsg,
+    PlanErrorMsg,
     PlanProgressMsg,
     RobotOnboardMsg,
     TaskRequestMsg,
@@ -133,7 +134,9 @@ class PlanServer:
         )
         self._transport.subscribe_plan_error(
             participant_id,
-            lambda payload, id=participant_id: self._on_plan_error(id, payload),
+            lambda plan_error_msg, id=participant_id: self._on_plan_error(
+                id, plan_error_msg
+            ),
         )
         self.logger.info(
             "Subscribed to task requests, progress, and errors for %s", participant_id
@@ -268,7 +271,7 @@ class PlanServer:
                 new_tasks=new_tasks,
                 committed_locations=committed_locations,
                 stationary_agents=stationary_robots,
-                obstacles=[],
+                obstacles=list(response.possible_obstacle_locations),
             )
 
             self.logger.debug("Solver plans: %s", solver_plans)
@@ -450,7 +453,7 @@ class PlanServer:
                 self.context.on_completed(robot_id, progress.plan_id)
                 self._publish_status(task_id, robot_id, TaskStatus.COMPLETED)
 
-    def _on_plan_error(self, robot_id: str, payload: dict) -> None:
+    def _on_plan_error(self, robot_id: str, plan_error_msg: PlanErrorMsg) -> None:
         """ """
         task_id = None
         with self._lock:
@@ -466,14 +469,14 @@ class PlanServer:
                 "Robot %s failed task %s: %s",
                 robot_id,
                 task_id,
-                payload.get("reason"),
+                plan_error_msg.details,
             )
             self.context.on_failed(robot_id, task_id)
             self._publish_status(
                 task_id=task_id,
                 robot_id=robot_id,
                 status=TaskStatus.FAILED,
-                reason=payload.get("reason"),
+                reason=plan_error_msg.details,
             )
 
     def _next_request_id(self) -> str:
